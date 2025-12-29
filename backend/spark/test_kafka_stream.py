@@ -2,6 +2,8 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, from_json
 from pyspark.sql.types import StructType, StringType, DoubleType
 from pyspark.sql.functions import from_unixtime, window, col, avg
+import psycopg2
+
 
 # Create Spark session
 spark = (
@@ -58,6 +60,61 @@ rolling_avg = (
     )
 )
 
+def write_to_postgres(batch_df, batch_id):
+    print(f">>> Writing batch {batch_id} to Postgres… rows = {batch_df.count()}")
+
+    try:
+        # Convert timestamp to string for Pandas compatibility
+        safe_df = batch_df.withColumn(
+            "event_time",
+            col("event_time").cast("string")
+        )
+
+        pdf = safe_df.toPandas()
+
+        if pdf.empty:
+            print(">>> Empty batch, skip.")
+            return
+
+        conn = psycopg2.connect(
+            dbname="crypto_sentiment",
+            user="aarush",
+            password="password123",
+            host="localhost",
+            port=5433
+        )
+        cur = conn.cursor()
+
+        for _, row in pdf.iterrows():
+            cur.execute("""
+                INSERT INTO sentiment_stream 
+                (title, summary, link, published, event_time, source, sentiment_score, sentiment_label)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                row["title"],
+                row["summary"],
+                row["link"],
+                row["published"],
+                row["event_time"],   # now a string
+                row["source"],
+                row["sentiment_score"],
+                row["sentiment_label"]
+            ))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+        print(">>> Batch inserted successfully!")
+
+    except Exception as e:
+        print(">>> ERROR writing to Postgres:", e)
+
+postgres_query = (
+    df_with_time.writeStream
+    .foreachBatch(write_to_postgres)
+    .outputMode("append")
+    .start()
+)
 
 # # Print to console
 # query = (
@@ -77,5 +134,7 @@ query2 = (
 )
 
 # query.awaitTermination()
-query2.awaitTermination()
+# postgres_query.awaitTermination()
+# query2.awaitTermination()
+spark.streams.awaitAnyTermination()
 
