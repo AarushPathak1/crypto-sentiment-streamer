@@ -15,8 +15,14 @@ spark.sparkContext.setLogLevel("WARN")
 # Define schema of incoming Kafka messages
 schema = (
     StructType()
-    .add("text", StringType())
+    .add("title", StringType())
+    .add("summary", StringType())
+    .add("link", StringType())
+    .add("published", StringType())
     .add("timestamp", DoubleType())
+    .add("source", StringType())
+    .add("sentiment_score", DoubleType())
+    .add("sentiment_label", StringType())
 )
 
 # Read Kafka stream
@@ -29,7 +35,9 @@ df = (
 )
 
 # Parse JSON string into structured fields
-parsed = df.select(from_json(col("value").cast("string"), schema).alias("data"))
+parsed = df.select(
+    from_json(col("value").cast("string"), schema).alias("data")
+).select("data.*")
 
 # Print to console
 query = (
