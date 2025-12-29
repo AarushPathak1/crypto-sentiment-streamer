@@ -1,0 +1,11 @@
+pyspark
+kafka-python
+transformers
+torch
+scikit-learn
+xgboost
+pandas
+numpy
+requests
+vaderSentiment
+python-dotenv
