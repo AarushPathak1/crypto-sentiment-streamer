@@ -1,6 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, from_json
 from pyspark.sql.types import StructType, StringType, DoubleType
+from pyspark.sql.functions import from_unixtime, window, col, avg
 
 # Create Spark session
 spark = (
@@ -39,13 +40,42 @@ parsed = df.select(
     from_json(col("value").cast("string"), schema).alias("data")
 ).select("data.*")
 
-# Print to console
-query = (
-    parsed.writeStream
-    .outputMode("append")
+df_with_time = parsed.withColumn(
+    "event_time",
+    from_unixtime(col("timestamp")).cast("timestamp")
+)
+
+# 5-minute rolling average sentiment
+rolling_avg = (
+    df_with_time
+    .withWatermark("event_time", "10 minutes")
+    .groupBy(
+        # window(col("event_time"), "5 minutes")
+        window(col("event_time"), "30 seconds")
+    )
+    .agg(
+        avg("sentiment_score").alias("avg_sentiment")
+    )
+)
+
+
+# # Print to console
+# query = (
+#     parsed.writeStream
+#     .outputMode("append")
+#     .format("console")
+#     .option("truncate", False)
+#     .start()
+# )
+
+query2 = (
+    rolling_avg.writeStream
+    .outputMode("update")
     .format("console")
-    .option("truncate", False)
+    .option("truncate", "false")
     .start()
 )
 
-query.awaitTermination()
+# query.awaitTermination()
+query2.awaitTermination()
+

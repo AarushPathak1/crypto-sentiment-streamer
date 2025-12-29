@@ -4,12 +4,19 @@ import feedparser
 from kafka import KafkaProducer
 from datetime import datetime
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from bs4 import BeautifulSoup
 
 RSS_FEEDS = [
     "https://www.coindesk.com/arc/outboundfeeds/rss/",
     "https://cointelegraph.com/rss",
     "https://bitcoinmagazine.com/.rss"
 ]
+
+def clean_html(text):
+    if not text:
+        return ""
+    soup = BeautifulSoup(text, "html.parser")
+    return soup.get_text(separator=" ").strip()
 
 def create_producer():
     return KafkaProducer(
@@ -27,7 +34,9 @@ def fetch_rss():
 
 def format_item(entry):
     title = entry.get("title", "")
-    summary = entry.get("summary", "")
+    summary_raw = entry.get("summary", "")
+    summary = clean_html(summary_raw)
+
 
     sentiment = get_sentiment(title + " " + summary)
 
