@@ -26,6 +26,7 @@ This is a *fully functional, production-style real-time data engineering pipelin
 ---
 
 # 🏗 System Architecture  
+```text
 ┌──────────────┐       ┌──────────────┐       ┌───────────────┐
 │  News Feeds  │  -->  │  Kafka Topic │  -->  │  Spark Stream  │
 └──────────────┘       └──────────────┘       │  + Sentiment   │
@@ -40,7 +41,7 @@ This is a *fully functional, production-style real-time data engineering pipelin
                                            │   Streamlit Dashboard  │
                                            └────────────────────────┘
 
-
+```
 ---
 
 # ✨ Features  
