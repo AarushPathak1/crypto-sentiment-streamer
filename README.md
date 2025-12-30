@@ -26,6 +26,7 @@ This is a *fully functional, production-style real-time data engineering pipelin
 ---
 
 # 🏗 System Architecture  
+```text
 ┌──────────────┐       ┌──────────────┐       ┌───────────────┐
 │  News Feeds  │  -->  │  Kafka Topic │  -->  │  Spark Stream  │
 └──────────────┘       └──────────────┘       │  + Sentiment   │
@@ -40,7 +41,7 @@ This is a *fully functional, production-style real-time data engineering pipelin
                                            │   Streamlit Dashboard  │
                                            └────────────────────────┘
 
-
+```
 ---
 
 # ✨ Features  
@@ -91,6 +92,7 @@ Your Streamlit UI displays:
 ---
 
 # 📂 Project Structure  
+```text
 crypto-sentiment-streamer/
 │
 ├── backend/
@@ -105,7 +107,7 @@ crypto-sentiment-streamer/
 ├── docker-compose.yml # Kafka + ZooKeeper + PostgreSQL
 ├── requirements.txt
 └── README.md
-
+```
 
 ---
 
@@ -115,22 +117,27 @@ crypto-sentiment-streamer/
 ```bash
 git clone https://github.com/<your-username>/crypto-sentiment-streamer.git
 cd crypto-sentiment-streamer
+
 docker-compose up -d
+
 cd backend/producer
 python news_producer.py
-cd backend/spark
+
+cd ../spark
 python test_kafka_stream.py
-cd dashboard
+
+cd ../../dashboard
 streamlit run app.py
+
 ```
 
 Open http://localhost:8501/
 
 
-id | title | summary | link | event_time | sentiment_score | sentiment_label | inserted_at
+Postgres header: id | title | summary | link | event_time | sentiment_score | sentiment_label | inserted_at
 
 
-🚀 Roadmap
+# 🚀 Roadmap
 
 Twitter/Reddit streaming integration
 
